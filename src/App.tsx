@@ -1,8 +1,19 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPlus, Play, ChevronRight, User, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
+import {
+  UserPlus,
+  Play,
+  RefreshCw,
+  ChevronRight,
+  AlertCircle,
+  X,
+  Settings,
+  Users,
+  Info
+} from 'lucide-react';
+import confetti from 'canvas-confetti';
 
-type GamePhase = 'SETUP' | 'PASSING' | 'REVEALING' | 'END';
+type GamePhase = 'SETUP_PLAYERS' | 'SETUP_CATEGORY' | 'PASSING' | 'REVEALING' | 'END';
 
 interface Player {
   id: string;
@@ -10,6 +21,27 @@ interface Player {
   word: string;
   isKallan: boolean;
 }
+
+interface TopicData {
+  id: string;
+  title: string;
+  emoji: string;
+  description: string;
+}
+
+const TOPICS_DATA: TopicData[] = [
+  { id: "🎬 Malayalam Cinema", title: "Malayalam Cinema", emoji: "🎬", description: "Classic movies and current hits from Mollywood." },
+  { id: "🎭 Movie Characters (Mal)", title: "Malayalam Characters", emoji: "🎭", description: "Iconic characters like Aadu Thoma and Sethurama Iyer." },
+  { id: "🚗 Cars", title: "Cars", emoji: "🏎️", description: "Supercars, luxury SUVs, and legendary auto brands." },
+  { id: "🏥 Medical", title: "Medical", emoji: "🏥", description: "Hospitals, treatments, and common medical terms." },
+  { id: "🇬🇧 Life in UK", title: "Life in UK", emoji: "💂", description: "Everything from Big Ben to Fish and Chips." },
+  { id: "☕ Java Programming", title: "Java Dev", emoji: "☕", description: "JVM, Spring Boot, and backend engineering terms." },
+  { id: "🏃 Agile Methodology", title: "Agile/Scrum", emoji: "🏃", description: "Daily standups, story points, and sprint cycles." },
+  { id: "🎭 Movie Characters (Tam)", title: "Tamil Characters", emoji: "🦁", description: "Baashha, Chitti, and the stars of Kollywood." },
+  { id: "📍 Places in Kerala", title: "God's Own Country", emoji: "🌴", description: "Vibrant places across the 14 districts of Kerala." },
+  { id: "🏏 Indian Cricket", title: "Cricket Mania", emoji: "🏏", description: "Legendary players and iconic stadiums." },
+  { id: "📚 Kerala PSC", title: "PSC Quest", emoji: "📚", description: "Key terms for Kerala's competitive exams." }
+];
 
 const TOPICS_WORDS: Record<string, string[]> = {
   "🎬 Malayalam Cinema": [
@@ -48,16 +80,16 @@ const TOPICS_WORDS: Record<string, string[]> = {
 };
 
 const App: React.FC = () => {
-  const [phase, setPhase] = useState<GamePhase>('SETUP');
+  const [phase, setPhase] = useState<GamePhase>('SETUP_PLAYERS');
   const [playerNames, setPlayerNames] = useState<string[]>([]);
   const [newName, setNewName] = useState('');
-  const [selectedTopic, setSelectedTopic] = useState("🎬 Malayalam Cinema");
+  const [selectedTopic, setSelectedTopic] = useState(TOPICS_DATA[0].id);
   const [players, setPlayers] = useState<Player[]>([]);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [isRevealed, setIsRevealed] = useState(false);
 
   const addPlayer = () => {
-    if (newName.trim() && !playerNames.includes(newName.trim())) {
+    if (newName.trim() && playerNames.length < 10 && !playerNames.includes(newName.trim())) {
       setPlayerNames([...playerNames, newName.trim()]);
       setNewName('');
     }
@@ -68,8 +100,8 @@ const App: React.FC = () => {
   };
 
   const startGame = () => {
-    const words = TOPICS_WORDS[selectedTopic];
-    const randomWord = words[Math.floor(Math.random() * words.length)];
+    const topicWords = TOPICS_WORDS[selectedTopic];
+    const randomWord = topicWords[Math.floor(Math.random() * topicWords.length)];
     const kallanIndex = Math.floor(Math.random() * playerNames.length);
 
     const gamePlayers: Player[] = playerNames.map((name, index) => ({
@@ -81,7 +113,6 @@ const App: React.FC = () => {
 
     setPlayers(gamePlayers);
     setCurrentPlayerIndex(0);
-    setIsRevealed(false);
     setPhase('PASSING');
   };
 
@@ -101,182 +132,172 @@ const App: React.FC = () => {
   };
 
   const resetGame = () => {
-    setPhase('SETUP');
+    setPhase('SETUP_PLAYERS');
     setPlayers([]);
     setCurrentPlayerIndex(0);
     setIsRevealed(false);
   };
 
   return (
-    <div className="container">
+    <div id="root">
       <AnimatePresence mode="wait">
-        {phase === 'SETUP' && (
+        {phase === 'SETUP_PLAYERS' && (
           <motion.div
-            key="setup"
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: -20 }}
-            transition={{ type: "spring", damping: 20, stiffness: 100 }}
-            className="card"
+            key="setup_players"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
-            <img
-              src="/logo.png"
-              alt="Kallan Logo"
-              className="app-logo"
-            />
-            <h1>KALLAN</h1>
-
-            {(/iPhone|iPad|iPod/i.test(navigator.userAgent)) && (
-              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '20px' }}>
-                Tap <span style={{ color: 'var(--primary)' }}>Share</span> then <span style={{ color: 'var(--primary)' }}>Add to Home Screen</span> for the full experience! 📱
-              </div>
-            )}
-
-            <div className="input-group">
-              <label className="label">Select Topic</label>
-              <select value={selectedTopic} onChange={(e) => setSelectedTopic(e.target.value)}>
-                {Object.keys(TOPICS_WORDS).map(topic => (
-                  <option key={topic} value={topic}>{topic}</option>
-                ))}
-              </select>
+            <div className="header">
+              <button className="icon-btn"><Users size={24} /></button>
+              <h1>Players</h1>
+              <button className="icon-btn"><Settings size={24} /></button>
             </div>
 
-            <div className="input-group">
-              <label className="label">Add Crew members ({playerNames.length}/10)</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input
-                  type="text"
-                  placeholder="Enter name..."
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && addPlayer()}
-                />
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="btn btn-primary glow-primary"
-                  style={{ width: 'auto' }}
-                  onClick={addPlayer}
+            <div className="player-list">
+              {playerNames.map((name) => (
+                <motion.div
+                  layout
+                  key={name}
+                  className="player-item"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
                 >
-                  <UserPlus size={20} />
-                </motion.button>
-              </div>
+                  <span>{name}</span>
+                  <X
+                    size={24}
+                    onClick={() => removePlayer(name)}
+                    style={{ cursor: 'pointer', opacity: 0.6 }}
+                  />
+                </motion.div>
+              ))}
             </div>
 
-            <motion.div
-              layout
-              style={{ margin: '20px 0', minHeight: '80px', display: 'flex', flexWrap: 'wrap' }}
-            >
-              <AnimatePresence>
-                {playerNames.map((name, i) => (
-                  <motion.span
-                    key={name}
-                    layout
-                    initial={{ opacity: 0, scale: 0.5, x: -20 }}
-                    animate={{ opacity: 1, scale: 1, x: 0 }}
-                    exit={{ opacity: 0, scale: 0.5, x: 20 }}
-                    transition={{ delay: i * 0.05 }}
-                    className="player-tag"
-                  >
-                    👤 {name}
-                    <button onClick={() => removePlayer(name)}>&times;</button>
-                  </motion.span>
-                ))}
-              </AnimatePresence>
-            </motion.div>
+            <div className="input-container">
+              <input
+                className="player-input"
+                placeholder="Enter player name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && addPlayer()}
+              />
+              <button className="add-btn" onClick={addPlayer}>
+                <UserPlus size={24} />
+              </button>
+            </div>
 
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="btn btn-primary glow-primary"
-              disabled={playerNames.length < 3}
-              onClick={startGame}
-            >
-              <Play size={20} fill="currentColor" /> Let's Play!
-            </motion.button>
+            <div className="bottom-action">
+              <button
+                className="action-main"
+                disabled={playerNames.length < 3}
+                onClick={() => setPhase('SETUP_CATEGORY')}
+              >
+                Continue
+              </button>
+              <div className="action-divider"></div>
+              <div className="action-info">
+                {playerNames.length} Players
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {phase === 'SETUP_CATEGORY' && (
+          <motion.div
+            key="setup_category"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+          >
+            <div className="header">
+              <button className="icon-btn" onClick={() => setPhase('SETUP_PLAYERS')}><ChevronRight size={24} style={{ transform: 'rotate(180deg)' }} /></button>
+              <h1>Categories</h1>
+              <button className="icon-btn"><Info size={24} /></button>
+            </div>
+
+            <div className="category-list">
+              {TOPICS_DATA.map((topic) => (
+                <div
+                  key={topic.id}
+                  className={`category-card ${selectedTopic === topic.id ? 'selected' : ''}`}
+                  onClick={() => setSelectedTopic(topic.id)}
+                >
+                  <div className="category-info">
+                    <h2>{topic.title}</h2>
+                    <p>{topic.description}</p>
+                  </div>
+                  <div style={{ fontSize: '48px' }} className="category-image">
+                    {topic.emoji}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="bottom-action">
+              <button className="action-main" onClick={startGame}>
+                Play
+              </button>
+              <div className="action-divider"></div>
+              <div className="action-info">
+                1 Category
+              </div>
+            </div>
           </motion.div>
         )}
 
         {phase === 'PASSING' && (
           <motion.div
             key="passing"
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -100 }}
-            className="card pass-device"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="game-card"
           >
-            <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ repeat: Infinity, duration: 2 }}
-            >
-              <User size={80} color="var(--primary)" />
-            </motion.div>
-            <h2>Pass the phone to</h2>
-            <div className="name-badge">{players[currentPlayerIndex].name}</div>
-            <motion.button
-              whileHover={{ x: 5 }}
-              className="btn btn-primary glow-primary"
-              onClick={nextAction}
-            >
-              I am {players[currentPlayerIndex].name} <ChevronRight size={20} />
-            </motion.button>
+            <div style={{ fontSize: '64px', marginBottom: '20px' }}>📱</div>
+            <h2 style={{ fontSize: '28px', marginBottom: '10px' }}>Pass Device</h2>
+            <p style={{ opacity: 0.6, marginBottom: '30px' }}>Give it to...</p>
+            <div style={{ fontSize: '48px', fontWeight: 800, color: 'var(--primary)', marginBottom: '40px' }}>
+              {players[currentPlayerIndex].name}
+            </div>
+            <button className="btn btn-primary" onClick={nextAction} style={{ width: '100%' }}>
+              I am {players[currentPlayerIndex].name}
+            </button>
           </motion.div>
         )}
 
         {phase === 'REVEALING' && (
           <motion.div
             key="revealing"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.2 }}
-            className="card pass-device"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="game-card"
           >
-            <div style={{ fontSize: '32px' }}>🔒</div>
-            <h2>Secret Word for {players[currentPlayerIndex].name}</h2>
-            <p style={{ color: 'var(--text-secondary)' }}>Ensure no one else is looking!</p>
+            <div style={{ fontSize: '24px', fontWeight: 800, marginBottom: '20px' }}>
+              SECRET FOR {players[currentPlayerIndex].name.toUpperCase()}
+            </div>
+            <p style={{ opacity: 0.6, marginBottom: '20px' }}>Tap below to see your role</p>
 
-            <motion.div
-              className={`reveal-box ${isRevealed ? 'active' : ''}`}
+            <div
+              className="reveal-box"
               onClick={() => setIsRevealed(true)}
-              whileTap={{ scale: 0.95 }}
             >
               {isRevealed ? (
                 players[currentPlayerIndex].isKallan ? (
-                  <motion.span
-                    initial={{ scale: 0.5, rotate: -10 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    className="kallan-text"
-                  >
-                    KALLAN 🕵️‍♂️
-                  </motion.span>
+                  <span className="kallan-text">KALLAN 🕵️‍♂️</span>
                 ) : (
-                  <motion.span
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                  >
-                    {players[currentPlayerIndex].word}
-                  </motion.span>
+                  <span style={{ fontSize: '32px', fontWeight: 800 }}>{players[currentPlayerIndex].word}</span>
                 )
               ) : (
-                <motion.div
-                  animate={{ opacity: [0.3, 0.6, 0.3] }}
-                  transition={{ repeat: Infinity, duration: 1.5 }}
-                >
-                  <AlertCircle size={64} />
-                  <div style={{ fontSize: '14px', marginTop: '10px' }}>Tap to Reveal</div>
-                </motion.div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', opacity: 0.5 }}>
+                  <AlertCircle size={48} />
+                  <span style={{ marginTop: '10px' }}>TAP TO REVEAL</span>
+                </div>
               )}
-            </motion.div>
+            </div>
 
             {isRevealed && (
-              <motion.button
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="btn btn-primary"
-                onClick={nextAction}
-              >
-                Got it! <CheckCircle2 size={20} />
-              </motion.button>
+              <button className="btn btn-primary" onClick={nextAction} style={{ width: '100%', marginTop: '20px' }}>
+                Got it!
+              </button>
             )}
           </motion.div>
         )}
@@ -284,65 +305,39 @@ const App: React.FC = () => {
         {phase === 'END' && (
           <motion.div
             key="end"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="card pass-device"
+            className="game-card"
           >
-            <motion.div
-              initial={{ scale: 1 }}
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ repeat: Infinity, duration: 3 }}
-              style={{ fontSize: '80px' }}
-            >
-              🕵️‍♂️
-            </motion.div>
-            <h1>Who is Kallan?</h1>
-            <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '10px' }}>
-              Discuss and cast your votes!
-            </p>
+            <h1 style={{ marginBottom: '10px' }}>Who is Kallan?</h1>
+            <p style={{ opacity: 0.6, marginBottom: '30px' }}>Discuss and vote!</p>
 
-            <div className="input-group" style={{ width: '100%' }}>
-              <label className="label">The secret was:</label>
-              <motion.div
-                className={`reveal-box ${isRevealed ? 'active' : ''}`}
-                style={{ height: '100px', fontSize: '28px', margin: '0' }}
-                onClick={() => setIsRevealed(true)}
-                whileTap={{ scale: 0.95 }}
-              >
-                {isRevealed ? (
-                  <span>✨ {players.find(p => !p.isKallan)?.word}</span>
-                ) : (
-                  <span style={{ fontSize: '16px', opacity: 0.6 }}>Tap to reveal word & Kallan</span>
-                )}
-              </motion.div>
-              <AnimatePresence>
-                {isRevealed && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    style={{ marginTop: '20px', padding: '15px', background: 'rgba(255, 59, 48, 0.1)', borderRadius: '16px', border: '1px solid rgba(255, 59, 48, 0.2)' }}
-                  >
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '12px', textTransform: 'uppercase' }}>The Impostor</div>
-                    <div className="kallan-text" style={{ fontSize: '32px' }}>{players.find(p => p.isKallan)?.name}</div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+            <div
+              className="reveal-box"
+              style={{ height: '120px' }}
+              onClick={() => {
+                setIsRevealed(true);
+                confetti({
+                  particleCount: 150,
+                  spread: 70,
+                  origin: { y: 0.6 }
+                });
+              }}
+            >
+              {isRevealed ? (
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '14px', opacity: 0.6 }}>KALLAN WAS</div>
+                  <div className="kallan-text" style={{ fontSize: '32px' }}>{players.find(p => p.isKallan)?.name}</div>
+                  <div style={{ fontSize: '18px', marginTop: '10px' }}>Word: {players.find(p => !p.isKallan)?.word}</div>
+                </div>
+              ) : (
+                <span>TAP TO REVEAL IDENTITY</span>
+              )}
             </div>
 
-            {isRevealed && (
-              <motion.button
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                whileHover={{ rotate: 180 }}
-                transition={{ type: "spring", stiffness: 200 }}
-                className="btn btn-secondary"
-                onClick={resetGame}
-                style={{ marginTop: '20px' }}
-              >
-                <RefreshCw size={20} /> Play Again
-              </motion.button>
-            )}
+            <button className="btn btn-primary" onClick={resetGame} style={{ width: '100%' }}>
+              <RefreshCw size={20} style={{ marginRight: '10px' }} /> Play Again
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
