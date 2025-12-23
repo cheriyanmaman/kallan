@@ -156,6 +156,11 @@ const App: React.FC = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
+            <img
+              src="/logo.png"
+              alt="Kallan Logo"
+              className="app-logo"
+            />
             <div className="header">
               <button className="icon-btn"><Users size={24} /></button>
               <h1>Players</h1>

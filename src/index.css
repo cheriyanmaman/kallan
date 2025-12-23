@@ -60,6 +60,15 @@ body::before {
     padding: 24px 20px 120px;
 }
 
+.app-logo {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 20px;
+    display: block;
+    border-radius: 30px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
 .header {
     display: flex;
     justify-content: space-between;
