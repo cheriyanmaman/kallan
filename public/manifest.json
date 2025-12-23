@@ -1,0 +1,21 @@
+{
+    "name": "Kallan - The Impostor Game",
+    "short_name": "Kallan",
+    "description": "A premium team game of mystery and deception.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#1c1c1e",
+    "theme_color": "#007AFF",
+    "icons": [
+        {
+            "src": "/logo.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/logo.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
