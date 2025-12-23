@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   UserPlus,
-  Play,
   RefreshCw,
   ChevronRight,
   AlertCircle,
@@ -335,9 +334,17 @@ const App: React.FC = () => {
               )}
             </div>
 
-            <button className="btn btn-primary" onClick={resetGame} style={{ width: '100%' }}>
-              <RefreshCw size={20} style={{ marginRight: '10px' }} /> Play Again
-            </button>
+            {isRevealed && (
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="btn btn-primary"
+                onClick={resetGame}
+                style={{ width: '100%' }}
+              >
+                <RefreshCw size={20} style={{ marginRight: '10px' }} /> Play Again
+              </motion.button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
