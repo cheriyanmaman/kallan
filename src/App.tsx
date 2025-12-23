@@ -4,7 +4,7 @@ import {
   UserPlus,
   RefreshCw,
   ChevronRight,
-  AlertCircle,
+  Fingerprint,
   X,
   Settings,
   Users,
@@ -19,6 +19,7 @@ interface Player {
   name: string;
   word: string;
   isKallan: boolean;
+  color: string;
 }
 
 interface TopicData {
@@ -30,16 +31,20 @@ interface TopicData {
 
 const TOPICS_DATA: TopicData[] = [
   { id: "🎬 Malayalam Cinema", title: "Malayalam Cinema", emoji: "🎬", description: "Classic movies and current hits from Mollywood." },
-  { id: "🎭 Movie Characters (Mal)", title: "Malayalam Characters", emoji: "🎭", description: "Iconic characters like Aadu Thoma and Sethurama Iyer." },
-  { id: "🚗 Cars", title: "Cars", emoji: "🏎️", description: "Supercars, luxury SUVs, and legendary auto brands." },
-  { id: "🏥 Medical", title: "Medical", emoji: "🏥", description: "Hospitals, treatments, and common medical terms." },
-  { id: "🇬🇧 Life in UK", title: "Life in UK", emoji: "💂", description: "Everything from Big Ben to Fish and Chips." },
-  { id: "☕ Java Programming", title: "Java Dev", emoji: "☕", description: "JVM, Spring Boot, and backend engineering terms." },
-  { id: "🏃 Agile Methodology", title: "Agile/Scrum", emoji: "🏃", description: "Daily standups, story points, and sprint cycles." },
-  { id: "🎭 Movie Characters (Tam)", title: "Tamil Characters", emoji: "🦁", description: "Baashha, Chitti, and the stars of Kollywood." },
-  { id: "📍 Places in Kerala", title: "God's Own Country", emoji: "🌴", description: "Vibrant places across the 14 districts of Kerala." },
-  { id: "🏏 Indian Cricket", title: "Cricket Mania", emoji: "🏏", description: "Legendary players and iconic stadiums." },
-  { id: "📚 Kerala PSC", title: "PSC Quest", emoji: "📚", description: "Key terms for Kerala's competitive exams." }
+  { id: "🎭 Movie Characters (Mal)", title: "Malayalam Characters", emoji: "🎭", description: "Iconic and legendary characters from Malayalam films." },
+  { id: "🚗 Cars", title: "Cars", emoji: "🏎️", description: "Supercars, luxury SUVs, and legendary auto brands from around the world." },
+  { id: "🏥 Medical", title: "Medical", emoji: "🏥", description: "Common medical terms, departments, and equipment." },
+  { id: "🇬🇧 Life in UK", title: "Life in UK", emoji: "💂", description: "Culture, landmarks, and daily life in the United Kingdom." },
+  { id: "☕ Java Programming", title: "Java Dev", emoji: "☕", description: "JVM concepts, frameworks, and backend engineering terms." },
+  { id: "🏃 Agile Methodology", title: "Agile/Scrum", emoji: "🏃", description: "Common terminology used in agile workflows and sprint cycles." },
+  { id: "🎭 Movie Characters (Tam)", title: "Tamil Characters", emoji: "🦁", description: "Memorable characters and stars from the Kollywood film industry." },
+  { id: "📍 Places in Kerala", title: "God's Own Country", emoji: "🌴", description: "Explore vibrant locations across the districts of Kerala." },
+  { id: "🏏 Indian Cricket", title: "Cricket Mania", emoji: "🏏", description: "Legendary Indian cricketers and iconic cricket venues." },
+  { id: "📚 Kerala PSC", title: "PSC Quest", emoji: "📚", description: "Essential terms for competitive exams in Kerala." }
+];
+
+const ANIME_COLORS = [
+  '#FF416C', '#FF4B2B', '#4568DC', '#B06AB3', '#11998e', '#38ef7d', '#FC466B', '#3F5EFB', '#00F260', '#0575E6', '#f12711', '#f5af19'
 ];
 
 const TOPICS_WORDS: Record<string, string[]> = {
@@ -94,6 +99,18 @@ const App: React.FC = () => {
     }
   }, [phase]);
 
+  // Update background color based on current player
+  useEffect(() => {
+    if (players.length > 0 && (phase === 'PASSING' || phase === 'REVEALING')) {
+      const activePlayer = players[currentPlayerIndex];
+      document.body.style.setProperty('--bg-gradient', `linear-gradient(180deg, ${activePlayer.color} 0%, #1C1B21 100%)`);
+      document.body.style.setProperty('--grid-color', 'rgba(255, 255, 255, 0.2)');
+    } else {
+      document.body.style.setProperty('--bg-gradient', 'linear-gradient(180deg, #FF456A 0%, #FF1F4B 100%)');
+      document.body.style.setProperty('--grid-color', 'rgba(255, 255, 255, 0.1)');
+    }
+  }, [phase, currentPlayerIndex, players]);
+
   const addPlayer = () => {
     if (newName.trim() && playerNames.length < 10 && !playerNames.includes(newName.trim())) {
       setPlayerNames([...playerNames, newName.trim()]);
@@ -116,7 +133,8 @@ const App: React.FC = () => {
       id: Math.random().toString(36).substr(2, 9),
       name,
       word: index === kallanIndex ? 'KALLAN' : randomWord,
-      isKallan: index === kallanIndex
+      isKallan: index === kallanIndex,
+      color: ANIME_COLORS[Math.floor(Math.random() * ANIME_COLORS.length)]
     }));
 
     setPlayers(gamePlayers);
@@ -302,7 +320,7 @@ const App: React.FC = () => {
                 )
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', opacity: 0.5 }}>
-                  <AlertCircle size={48} />
+                  <Fingerprint size={48} />
                   <span style={{ marginTop: '10px' }}>TAP TO REVEAL</span>
                 </div>
               )}
