@@ -16,10 +16,22 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+html {
+    background-color: var(--primary);
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100vh;
+}
+
 body {
     font-family: 'Outfit', sans-serif;
     background: var(--bg-gradient);
-    min-height: 100vh;
+    background-attachment: fixed;
     color: var(--text-white);
     display: flex;
     justify-content: center;

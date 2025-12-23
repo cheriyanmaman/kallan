@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   UserPlus,
@@ -86,11 +86,20 @@ const App: React.FC = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [isRevealed, setIsRevealed] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (phase === 'SETUP_PLAYERS') {
+      inputRef.current?.focus();
+    }
+  }, [phase]);
 
   const addPlayer = () => {
     if (newName.trim() && playerNames.length < 10 && !playerNames.includes(newName.trim())) {
       setPlayerNames([...playerNames, newName.trim()]);
       setNewName('');
+      // Use setTimeout to ensure focus stays after state update
+      setTimeout(() => inputRef.current?.focus(), 0);
     }
   };
 
@@ -174,6 +183,7 @@ const App: React.FC = () => {
 
             <div className="input-container">
               <input
+                ref={inputRef}
                 className="player-input"
                 placeholder="Enter player name"
                 value={newName}
